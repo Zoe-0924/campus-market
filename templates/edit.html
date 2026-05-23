@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>編輯商品 - 興大二手交易</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .form-container { max-width: 600px; margin: 30px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .contact-row { display: flex; gap: 10px; }
+        .btn-save { width: 100%; padding: 15px; background-color: #3498db; color: white; border: none; border-radius: 4px; font-size: 1.1em; cursor: pointer; font-weight: bold; }
+        .btn-save:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>興大二手交易</h2>
+        <nav><a href="/seller/dashboard">返回管理後台</a></nav>
+    </header>
+
+    <div class="container">
+        <div class="form-container">
+            <h2>✏️ 編輯商品：{{ product.name }}</h2>
+            <form action="/products/{{ product.id }}/edit" method="POST" enctype="multipart/form-data">
+                
+                <div class="form-group">
+                    <label>商品名稱：</label>
+                    <input type="text" name="name" value="{{ product.name }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>價格 (TWD)：</label>
+                    <input type="number" name="price" value="{{ product.price | int }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>商品分類：</label>
+                    <select name="category">
+                        {% for category in categories %}
+                        <option value="{{ category }}" {% if product.category == category %}selected{% endif %}>{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>面交地點：</label>
+                    <input type="text" name="location" value="{{ product.location }}" required placeholder="例如：女宿門口、社管大樓">
+                </div>
+
+                <div class="form-group">
+                    <label>標籤 (多個請用逗號隔開)：</label>
+                    <input type="text" name="tags" value="{{ product.tags }}" placeholder="例如：九成新, 必修">
+                </div>
+
+                <div class="form-group">
+                    <label>聯絡方式：</label>
+                    <div class="contact-row">
+                        <select name="contact_type" style="width: 150px;">
+                            <option value="ig" {% if product.contact_type == 'ig' %}selected{% endif %}>Instagram</option>
+                            <option value="line" {% if product.contact_type == 'line' %}selected{% endif %}>LINE ID</option>
+                            <option value="other" {% if product.contact_type == 'other' %}selected{% endif %}>其他網址</option>
+                        </select>
+                        <input type="text" name="contact" value="{{ product.contact }}" style="flex: 1;" required placeholder="請輸入帳號或網址">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>更新圖片 (若不修改請留空)：</label>
+                    <input type="file" name="file" accept="image/*">
+                    <div style="margin-top: 10px;">
+                        <span style="font-size: 0.9em; color: #666;">目前圖片：</span>
+                        <img src="{{ product.image }}" style="width: 100px; height: 100px; object-fit: cover; border: 1px solid #eee; border-radius: 4px; vertical-align: middle;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>商品詳細描述：</label>
+                    <textarea name="description" rows="5">{{ product.description }}</textarea>
+                </div>
+
+                <button type="submit" class="btn-save">儲存修改並更新</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

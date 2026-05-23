@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ product.name if product else "找不到商品" }} - 商品詳情</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .detail-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .detail-image {
+            flex: 1;
+            min-width: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f0f0f0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .detail-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .detail-info {
+            flex: 1;
+            min-width: 300px;
+        }
+        .info-card {
+            background: #fff;
+            padding: 25px;
+            border: 1px solid #eee;
+            border-radius: 12px;
+        }
+        .info-item {
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f9f9f9;
+            display: flex;
+            align-items: center;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            width: 100px;
+            flex-shrink: 0;
+        }
+        .tag-badge {
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-right: 8px;
+        }
+        /* 聯絡按鈕樣式 */
+        .contact-btn {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 16px;
+            font-size: 1.15em;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: transform 0.2s, opacity 0.2s;
+            margin-top: 25px;
+            border: none;
+            cursor: pointer;
+        }
+        .contact-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        .btn-ig { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+        .btn-line { background-color: #00B900; }
+        .btn-other { background-color: #4CAF50; }
+        
+        .error-box {
+            text-align: center;
+            padding: 100px 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>興大二手交易</h2>
+        <nav style="display: flex; align-items: center; gap: 20px;">
+            <a href="/">首頁</a>
+            <a href="/products/">所有商品</a>
+            <div class="user-nav" style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+                {% if user %}
+                    <span style="color: white; font-size: 0.9em;">👋 你好，{{ user.sub }}</span>
+                    <a href="/seller/dashboard" style="color: #f39c12; font-weight: bold;">賣家專區</a>
+                {% else %}
+                    <a href="/login" style="color: white; text-decoration: underline;">登入/註冊</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <a href="javascript:history.back()" style="text-decoration: none; color: #4CAF50; font-weight: bold;">← 返回上一頁</a>
+        
+        {% if product %}
+            <div class="detail-container">
+                <div class="detail-image">
+                    {% if product.image %}
+                        <img src="{{ product.image }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div style="padding: 120px; text-align: center; color: #bbb;">此商品暫無圖片</div>
+                    {% endif %}
+                </div>
+
+                <div class="detail-info">
+                    <div class="info-card">
+                        <h1 style="margin-top: 0; color: #2c3e50;">{{ product.name }}</h1>
+                        <h2 style="color: #e74c3c; margin: 10px 0;">NT$ {{ product.price | int }}</h2>
+                        
+                        <div style="margin-bottom: 25px;">
+                            {% if product.tags %}
+                                {% for tag in product.tags.split(',') %}
+                                    <span class="tag-badge">#{{ tag.strip() }}</span>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-label">分類</span>
+                            <span>{{ product.category }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">交易狀態</span>
+                            <span style="color: #27ae60; font-weight: bold;">{{ product.status }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">面交地點</span>
+                            <span>{{ product.location }}</span>
+                        </div>
+                        
+                        <div style="margin-top: 25px;">
+                            <p class="info-label">商品描述</p>
+                            <div style="line-height: 1.7; color: #555; background: #fdfdfd; padding: 20px; border: 1px dashed #ddd; border-radius: 6px;">
+                                {{ product.description or "賣家很懶，沒有寫描述哦。" }}
+                            </div>
+                        </div>
+
+                        {% set contact_url = product.contact %}
+                        {% set btn_class = "btn-other" %}
+                        {% set btn_text = "🔗 立即聯繫賣家" %}
+
+                        {% if product.contact_type == 'ig' %}
+                            {% set contact_url = 'https://instagram.com/' + product.contact.replace('@', '') %}
+                            {% set btn_class = "btn-ig" %}
+                            {% set btn_text = "📸 開啟 Instagram 私訊" %}
+                        {% elif product.contact_type == 'line' %}
+                            {% set contact_url = 'https://line.me/ti/p/~' + product.contact %}
+                            {% set btn_class = "btn-line" %}
+                            {% set btn_text = "💬 加入 LINE 聯絡賣家" %}
+                        {% endif %}
+
+                        <a href="{{ contact_url }}" target="_blank" class="contact-btn {{ btn_class }}">
+                            {{ btn_text }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="error-box">
+                <h1 style="font-size: 4em; margin: 0; color: #eee;">404</h1>
+                <h2 style="color: #e74c3c;">❌ 找不到該商品</h2>
+                <p style="color: #666; margin-bottom: 30px;">該商品可能已經被刪除，或資料庫剛重置過。</p>
+                <a href="/products/"><button style="padding: 12px 30px;">查看其他商品</button></a>
+            </div>
+        {% endif %}
+    </div>
+
+    <footer style="text-align: center; margin-top: 60px; padding: 30px; color: #bbb; font-size: 0.85em;">
+        © 2026 NCHU Campus Market - 僅限興大校內面交測試使用
+    </footer>
+</body>
+</html>

@@ -1,0 +1,17 @@
+# Python 暫存檔
+__pycache__/
+*.pyc
+*.pyo
+
+# 環境變數與機密資訊
+.env
+
+# 你的本地 SQLite 資料庫
+campus_market.db
+
+# 使用者上傳的圖片 (避免推送到 GitHub)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# 編輯器設定
+.vscode/

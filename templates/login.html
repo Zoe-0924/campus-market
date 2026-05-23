@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>會員登入與註冊 - 興大二手交易平台</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .auth-card { max-width: 450px; margin: 60px auto; background: white; padding: 35px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .auth-tabs { display: flex; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; }
+        .tab-btn { flex: 1; padding: 12px; text-align: center; cursor: pointer; font-weight: bold; color: #888; }
+        .tab-btn.active { color: #4CAF50; border-bottom: 2px solid #4CAF50; }
+        .auth-form { display: none; }
+        .auth-form.active { display: block; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .submit-btn { width: 100%; padding: 14px; border: none; border-radius: 6px; color: white; font-size: 1.1em; font-weight: bold; cursor: pointer; }
+        .btn-login { background-color: #4CAF50; }
+        .btn-register { background-color: #3498db; }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>興大二手交易</h2>
+        <nav><a href="/">回首頁</a></nav>
+    </header>
+
+    <div id="auth-msg-bridge" 
+         data-error="{{ error or '' }}" 
+         data-success="{{ success or '' }}" 
+         style="display: none;">
+    </div>
+
+    <div class="container">
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <div class="tab-btn active" onclick="switchTab('login-form', this)">會員登入</div>
+                <div class="tab-btn" onclick="switchTab('register-form', this)">註冊帳號</div>
+            </div>
+
+            <div id="login-form" class="auth-form active">
+                <form action="/auth/login" method="POST">
+                    <div class="form-group"><label>帳號：</label><input type="text" name="username" required></div>
+                    <div class="form-group"><label>密碼：</label><input type="password" name="password" required></div>
+                    <button type="submit" class="submit-btn btn-login">登入平台</button>
+                </form>
+            </div>
+
+            <div id="register-form" class="auth-form">
+                <form action="/auth/register" method="POST">
+                    <div class="form-group"><label>設定帳號：</label><input type="text" name="username" required></div>
+                    <div class="form-group"><label>設定密碼：</label><input type="password" name="password" required></div>
+                    <button type="submit" class="submit-btn btn-register">確認註冊</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(formId, btn) {
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            document.getElementById(formId).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // 💡 使用純 JavaScript 讀取 HTML 屬性，避開 Jinja2 語法檢查
+        window.onload = function() {
+            const bridge = document.getElementById('auth-msg-bridge');
+            const errorMsg = bridge.getAttribute('data-error');
+            const successMsg = bridge.getAttribute('data-success');
+
+            if (errorMsg && errorMsg !== '') {
+                alert("⚠️ " + errorMsg);
+            }
+            if (successMsg && successMsg !== '') {
+                alert("✅ " + successMsg);
+            }
+        };
+    </script>
+</body>
+</html>

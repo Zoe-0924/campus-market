@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中興大學二手交易平台</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* 頁面專屬風格 */
+        .hero-section {
+            background: linear-gradient(135deg, #4CAF50 0%, #2e7d32 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 30px;
+        }
+        .search-container {
+            max-width: 980px;
+            margin: -30px auto 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-barter {
+            background: #6c5ce7;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            transition: transform 0.2s;
+        }
+        .btn-barter:hover { transform: scale(1.05); background: #5b4bc4; }
+        .tag-badge {
+            background: #f1f8e9;
+            color: #388e3c;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>興大二手交易</h2>
+        <nav style="display: flex; align-items: center; gap: 20px;">
+            <a href="/">首頁</a>
+            <a href="/products/">所有商品</a>
+            <a href="/post">刊登商品</a>
+    
+            <a href="/barter/" class="btn-barter">🔥 換換模式</a>
+
+            <div class="user-nav" style="margin-left: auto; display: flex; align-items: center; gap: 15px;">
+                {% if user %}
+                    <span style="color: white; font-size: 0.9em;">👋 你好，{{ user.sub }}</span>
+            
+                    <a href="/barter/matches" style="color: #6c5ce7; background: white; padding: 3px 10px; border-radius: 15px; font-size: 0.85em; font-weight: bold; text-decoration: none; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        🎁 我的配對
+                    </a>
+
+                    <a href="/seller/dashboard" style="color: #f39c12; font-weight: bold; text-decoration: none;">賣家專區</a>
+                    <a href="/auth/logout" style="color: #ffcccc; font-size: 0.85em; text-decoration: none; border: 1px solid #ffcccc; padding: 2px 8px; border-radius: 4px;">登出</a>
+                {% else %}
+                    <a href="/login" style="color: white; text-decoration: underline;">登入/註冊</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <div class="hero-section">
+        <h1>尋找校園好物，開始永續循環</h1>
+        <p>NCHU Campus Second-hand Market</p>
+    </div>
+
+    <div class="container">
+        <div class="search-container">
+            <form action="/search/" method="GET" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" name="q" placeholder="想找什麼？輸入關鍵字..." style="flex: 2 1 240px; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+                <select name="cat" style="flex: 1 1 140px; min-width: 140px; border: 1px solid #ddd; border-radius: 6px;">
+                    <option value="">所有分類</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="min_p" min="0" placeholder="最低價" style="flex: 1 1 110px; min-width: 110px; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+                <input type="number" name="max_p" min="0" placeholder="最高價" style="flex: 1 1 110px; min-width: 110px; padding: 12px; border: 1px solid #ddd; border-radius: 6px;">
+                <button type="submit" style="padding: 10px 25px; background: #2e7d32;">搜尋</button>
+            </form>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2>✨ 最新上架物品</h2>
+            <a href="/products/" style="color: #2e7d32; text-decoration: none;">查看全部 →</a>
+        </div>
+
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <div style="height: 200px; background: #f5f5f5; border-radius: 8px 8px 0 0; overflow: hidden;">
+                    {% if product.image %}
+                        <img src="{{ product.image }}" alt="{{ product.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #bbb;">無圖片</div>
+                    {% endif %}
+                </div>
+                <div style="padding: 15px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 1.1em; color: #333;">{{ product.name }}</h3>
+                    <p class="price" style="font-size: 1.2em; color: #e74c3c; font-weight: bold; margin-bottom: 10px;">
+                        $ {{ product.price | int }}
+                    </p>
+                    
+                    <div style="margin-bottom: 12px; height: 24px; overflow: hidden;">
+                        {% if product.tags %}
+                            {% for tag in product.tags.split(',') %}
+                                <span class="tag-badge">#{{ tag.strip() }}</span>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <a href="/products/{{ product.id }}" style="text-decoration: none;">
+                        <button style="width: 100%; padding: 10px; background: #f8f9fa; color: #333; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                            查看商品詳情
+                        </button>
+                    </a>
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px; color: #999;">
+                目前還沒有商品上架，快來當第一個賣家吧！
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 50px; background: #f0f7ff; padding: 30px; border-radius: 12px; display: flex; align-items: center; gap: 20px;">
+            <div style="font-size: 3em;">🤝</div>
+            <div>
+                <h3>試試全新的「以物易物」模式！</h3>
+                <p>不想花錢買？沒關係！用你用不到的寶貝，換回你心儀的好物。點擊上方導覽列的紫色按鈕開始體驗。</p>
+            </div>
+        </div>
+    </div>
+
+    <footer style="text-align: center; margin-top: 60px; padding: 40px 20px; background: #333; color: #ccc; font-size: 0.9em;">
+        <p>國立中興大學 - 校園二手交易平台測試版</p>
+        <p>© 2026 NCHU CS Project. All rights reserved.</p>
+    </footer>
+</body>
+</html>
