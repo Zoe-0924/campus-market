@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>興大換換 Barter - 興大二手市集</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .barter-layout {
+            display: grid;
+            grid-template-columns: minmax(250px, 330px) 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+        }
+
+        .page-title h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .page-title p {
+            margin: 6px 0 0;
+            color: #777;
+        }
+
+        .muted {
+            color: white;
+            opacity: 0.95;
+        }
+
+        .btn {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .offer-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .offer-item {
+            display: grid;
+            grid-template-columns: 64px 1fr;
+            gap: 12px;
+            align-items: center;
+            padding: 10px;
+            color: inherit;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+        }
+
+        .offer-item:hover,
+        .offer-item.active {
+            border-color: #6c5ce7;
+            box-shadow: 0 10px 24px rgba(108, 92, 231, 0.14);
+            transform: translateY(-1px);
+        }
+
+        .offer-item img {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #edf1ed;
+        }
+
+        .offer-title {
+            color: #2c3e50;
+            font-weight: 800;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .offer-meta {
+            margin-top: 4px;
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        .selected-offer {
+            margin-bottom: 16px;
+            color: #60707c;
+            font-weight: 700;
+        }
+
+        .selected-offer strong {
+            color: #2c3e50;
+        }
+
+        /* ── 篩選條件面板 ── */
+        .filter-panel {
+            margin-bottom: 18px;
+            padding: 14px 16px;
+            border: 1px solid #e0d9f7;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f8f6ff 0%, #f0f4ff 100%);
+        }
+
+        .filter-panel h4 {
+            margin: 0 0 12px;
+            font-size: 0.9rem;
+            color: #6c5ce7;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-form select,
+        .filter-form input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            border: 1px solid #c9bef5;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            background: white;
+            color: #2c3e50;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .filter-form select:focus,
+        .filter-form input[type="text"]:focus {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.12);
+        }
+
+        .filter-btn-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-submit {
+            flex: 1;
+            padding: 8px 0;
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+
+        .filter-submit:hover {
+            background: #5a4ad1;
+        }
+
+        .filter-submit:active {
+            transform: scale(0.97);
+        }
+
+        .filter-reset {
+            padding: 8px 14px;
+            background: white;
+            color: #6c5ce7;
+            border: 1px solid #c9bef5;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            transition: background 0.15s;
+        }
+
+        .filter-reset:hover {
+            background: #f0ecff;
+        }
+
+        .filter-badge {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 1px 7px;
+            background: #6c5ce7;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .swipe-stage {
+            min-height: 75vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 24px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(238, 245, 239, 0.92)),
+                #eef2f5;
+            touch-action: none;
+        }
+
+        .card-stack {
+            width: min(350px, 86vw);
+            height: 510px;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .swipe-card {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 18px 42px rgba(36, 48, 43, 0.16);
+            cursor: grab;
+            user-select: none;
+            will-change: transform, opacity;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+        }
+
+        .swipe-card:active {
+            cursor: grabbing;
+        }
+
+        .swipe-card img {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+            pointer-events: none;
+            background: #edf1ed;
+        }
+
+        .card-info {
+            padding: 18px;
+            text-align: left;
+        }
+
+        .card-info h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.35rem;
+            line-height: 1.25;
+        }
+
+        .card-info p {
+            margin: 7px 0;
+            color: #687782;
+        }
+
+        /* 分類標籤 */
+        .card-category-badge {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 3px 10px;
+            background: #f0ecff;
+            color: #6c5ce7;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .stamp {
+            position: absolute;
+            top: 38px;
+            z-index: 10;
+            padding: 9px 18px;
+            border: 5px solid;
+            border-radius: 8px;
+            font-size: 2.1rem;
+            font-weight: 900;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.1s;
+        }
+
+        .stamp-like {
+            left: 20px;
+            color: #2f9e62;
+            border-color: #2f9e62;
+            transform: rotate(-18deg);
+        }
+
+        .stamp-dislike {
+            right: 20px;
+            color: #ff4757;
+            border-color: #ff4757;
+            transform: rotate(18deg);
+        }
+
+        .swipe-controls {
+            display: flex;
+            gap: 26px;
+            margin-top: 22px;
+            z-index: 20;
+        }
+
+        .btn-action {
+            width: 66px;
+            height: 66px;
+            min-height: 66px;
+            padding: 0;
+            border-radius: 50%;
+            background: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 8px 22px rgba(36, 48, 43, 0.12);
+            font-size: 1.45rem;
+        }
+
+        .btn-action:hover {
+            background: white;
+        }
+
+        .btn-action:active {
+            transform: scale(0.94);
+        }
+
+        .btn-action:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .btn-dislike {
+            color: #ff4757;
+        }
+
+        .btn-like {
+            color: #2f9e62;
+        }
+
+        .exit-right {
+            transform: translateX(200%) rotate(30deg) !important;
+            opacity: 0;
+        }
+
+        .exit-left {
+            transform: translateX(-200%) rotate(-30deg) !important;
+            opacity: 0;
+        }
+
+        @media (max-width: 760px) {
+            .barter-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .swipe-stage {
+                min-height: 68vh;
+                padding: 16px;
+            }
+
+            .card-stack {
+                height: 470px;
+            }
+
+            .swipe-card img {
+                height: 285px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header style="display: flex; justify-content: space-between; align-items: center; padding: 30px 45px; width: 100%; box-sizing: border-box;">
+    
+        <h2 style="margin: 0;">興大換換 Barter</h2>
+    
+        <nav style="display: flex; align-items: center; gap: 25px;">
+            <a href="/">首頁</a>
+            <a href="/products/">全部商品</a>
+            <a href="/chat">我的訊息</a>
+            <a href="/barter/matches">我的配對</a>
+            <a href="/settings" class="avatar-pill" title="個人設定" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; border: 2px solid var(--line) !important; border-radius: 50% !important; overflow: hidden !important; box-shadow: 2px 2px 0 var(--line) !important; background: #fff !important; flex-shrink: 0 !important; transition: transform 0.16s ease, box-shadow 0.16s ease;">
+                <img src="{{ get_user_avatar(user.user_id) or '/static/assets/icon-profile.png' }}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" alt="⚙️">
+            </a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="page-title">
+            <div>
+                <h1>換換模式</h1>
+                <p>先選一件你要拿出的物品，再滑你希望得到的物品。</p>
+            </div>
+        </section>
+
+        <div class="barter-layout">
+            <aside class="panel">
+                <h3>你要拿出的物品</h3>
+                {% if my_products %}
+                <div class="offer-list">
+                    {% for item in my_products %}
+                    <a class="offer-item {% if selected_product and selected_product.id == item.id %}active{% endif %}"
+                       href="/barter/?offering_id={{ item.id }}{% if want_category %}&want_category={{ want_category }}{% endif %}{% if keyword %}&keyword={{ keyword }}{% endif %}">
+                        <img src="{{ item.image or '/static/default_item.png' }}" alt="{{ item.name }}">
+                        <div>
+                            <div class="offer-title">{{ item.name }}</div>
+                            <div class="offer-meta">{{ item.location or '未填地點' }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                {% if selected_product %}
+                <!-- 篩選條件面板：選好自己的物品後才顯示 -->
+                <div class="filter-panel" style="margin-top: 20px;">
+                    <h4>
+                        🔍 我想要的條件
+                        {% if filters_active %}<span class="filter-badge">已套用</span>{% endif %}
+                    </h4>
+                    <form class="filter-form" method="GET" action="/barter/">
+                        <input type="hidden" name="offering_id" value="{{ selected_product.id }}">
+                        <select name="want_category" id="want_category">
+                            <option value="">── 所有分類 ──</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}" {% if want_category == cat %}selected{% endif %}>{{ cat }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="keyword" id="barter_keyword"
+                               placeholder="關鍵字（例如：微積分）"
+                               value="{{ keyword }}">
+                        <div class="filter-btn-row">
+                            <button type="submit" class="filter-submit">套用篩選</button>
+                            {% if filters_active %}
+                            <a class="filter-reset" href="/barter/?offering_id={{ selected_product.id }}">清除</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+
+                {% else %}
+                <div class="empty-state" style="min-height: 220px; padding: 16px;">
+                    <h3>你還沒有可交換的物品</h3>
+                    <p>先刊登一個物品，才能進入換換模式。</p>
+                    <a href="/post" class="btn">刊登物品</a>
+                </div>
+                {% endif %}
+            </aside>
+
+            <section class="swipe-stage">
+                {% if not my_products %}
+                <div class="empty-state">
+                    <h3>先準備你的交換物品</h3>
+                    <p>換換模式會用你選定的一件物品，去滑你希望得到的物品。</p>
+                </div>
+                {% elif not selected_product %}
+                <div class="empty-state">
+                    <h3>請先點選左側的物品</h3>
+                    <p>選好你要拿出的物品後，就可以像交友軟體一樣往右或往左滑。</p>
+                </div>
+                {% else %}
+                <div class="selected-offer">
+                    目前拿出：<strong>{{ selected_product.name }}</strong>
+                </div>
+
+                <div class="card-stack" id="stack">
+                    {% for p in products %}
+                    <article class="swipe-card" id="p-{{ p.id }}" data-zindex="{{ loop.revindex }}">
+                        <div class="stamp stamp-like">LIKE</div>
+                        <div class="stamp stamp-dislike">NOPE</div>
+
+                        <img src="{{ p.image or '/static/default_item.png' }}" alt="{{ p.name }}">
+
+                        <div class="card-info">
+                            <h3>{{ p.name }}</h3>
+                            {% if p.category %}
+                            <span class="card-category-badge">{{ p.category }}</span>
+                            {% endif %}
+                            <p>{{ p.location or '未填地點' }}</p>
+                            <p>{{ p.description | truncate(50, True, '...') if p.description else '賣家沒有填寫描述。' }}</p>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+
+                <div class="empty-state" id="emptyMessage" {% if products %}style="display: none;"{% endif %}>
+                    <h3>已經沒有能交換的項目</h3>
+                    <p>這件物品目前能滑的項目都看完了，可以換一件自己的物品再試試。</p>
+                </div>
+
+                <div class="swipe-controls">
+                    <button class="btn-action btn-dislike" id="dislikeBtn" onclick="handleBtnSwipe(false)" aria-label="不想交換">X</button>
+                    <button class="btn-action btn-like" id="likeBtn" onclick="handleBtnSwipe(true)" aria-label="想交換">♥</button>
+                </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+
+    {% if selected_product %}
+    <script>
+        let isDragging = false;
+        let startX = 0;
+        let currentX = 0;
+        let activeCard = null;
+        const threshold = 130;
+        const offeredProductId = {{ selected_product.id }};
+
+        function remainingCards() {
+            return Array.from(document.querySelectorAll('.swipe-card:not(.exit-left):not(.exit-right)'));
+        }
+
+        function updateEmptyState() {
+            const hasCards = remainingCards().length > 0;
+            const stack = document.getElementById('stack');
+            const emptyMessage = document.getElementById('emptyMessage');
+            const dislikeBtn = document.getElementById('dislikeBtn');
+            const likeBtn = document.getElementById('likeBtn');
+
+            if (stack) stack.style.display = hasCards ? 'block' : 'none';
+            if (emptyMessage) emptyMessage.style.display = hasCards ? 'none' : 'flex';
+            if (dislikeBtn) dislikeBtn.disabled = !hasCards;
+            if (likeBtn) likeBtn.disabled = !hasCards;
+        }
+
+        function initCardStack() {
+            const cards = document.querySelectorAll('.swipe-card');
+            cards.forEach(card => {
+                card.style.zIndex = card.dataset.zindex;
+            });
+            setupCurrentCard();
+            updateEmptyState();
+        }
+
+        function setupCurrentCard() {
+            const cards = remainingCards();
+            if (cards.length === 0) {
+                activeCard = null;
+                updateEmptyState();
+                return;
+            }
+
+            activeCard = cards[cards.length - 1];
+            activeCard.addEventListener('mousedown', startDrag);
+            activeCard.addEventListener('touchstart', startDrag, { passive: true });
+        }
+
+        function startDrag(e) {
+            if (!activeCard) return;
+            isDragging = true;
+            startX = (e.type === 'mousedown') ? e.pageX : e.touches[0].pageX;
+            currentX = startX;
+            activeCard.style.transition = 'none';
+
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function onDrag(e) {
+            if (!isDragging || !activeCard) return;
+            if (e.type === 'touchmove') e.preventDefault();
+
+            currentX = (e.type === 'mousemove') ? e.pageX : e.touches[0].pageX;
+            const deltaX = currentX - startX;
+            const rotate = deltaX / 15;
+
+            activeCard.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
+
+            const likeStamp = activeCard.querySelector('.stamp-like');
+            const dislikeStamp = activeCard.querySelector('.stamp-dislike');
+            if (deltaX > 0) {
+                likeStamp.style.opacity = Math.min(deltaX / threshold, 1);
+                dislikeStamp.style.opacity = 0;
+            } else {
+                dislikeStamp.style.opacity = Math.min(Math.abs(deltaX) / threshold, 1);
+                likeStamp.style.opacity = 0;
+            }
+        }
+
+        async function endDrag() {
+            if (!isDragging || !activeCard) return;
+            isDragging = false;
+
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('touchmove', onDrag);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchend', endDrag);
+
+            const deltaX = currentX - startX;
+            activeCard.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s';
+
+            if (Math.abs(deltaX) > threshold) {
+                executeSwipe(deltaX > 0);
+            } else {
+                activeCard.style.transform = 'translateX(0) rotate(0)';
+                activeCard.querySelector('.stamp-like').style.opacity = 0;
+                activeCard.querySelector('.stamp-dislike').style.opacity = 0;
+            }
+        }
+
+        function handleBtnSwipe(isLike) {
+            const cards = remainingCards();
+            if (cards.length === 0) {
+                updateEmptyState();
+                return;
+            }
+            activeCard = cards[cards.length - 1];
+            executeSwipe(isLike);
+        }
+
+        async function executeSwipe(isLike) {
+            if (!activeCard) return;
+
+            const cardToRemove = activeCard;
+            const productId = cardToRemove.id.split('-')[1];
+            cardToRemove.classList.add(isLike ? 'exit-right' : 'exit-left');
+
+            try {
+                const response = await fetch(`/barter/swipe/${productId}?is_like=${isLike}&offered_product_id=${offeredProductId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    alert(data.msg || '滑卡失敗，請稍後再試');
+                } else if (data.status === 'match') {
+                    setTimeout(() => {
+                        alert(`配對成功！\n你想用「${data.offered_name}」交換「${data.target_name}」。\n可以到「我的配對」查看聯絡方式。`);
+                    }, 400);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('網路連線失敗，請稍後再試');
+            }
+
+            setTimeout(() => {
+                cardToRemove.remove();
+                setupCurrentCard();
+                updateEmptyState();
+            }, 400);
+        }
+
+        window.onload = initCardStack;
+    </script>
+    {% endif %}
+</body>
+</html>

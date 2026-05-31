@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>興大二手交易 - 校園市集</title>
+    <link rel="stylesheet" href="/static/style.css?v=2">
+    <style>
+        /* 強制分類橫向滾動 - 覆蓋任何可能的衝突 */
+        #categoryTrack {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            overflow-y: visible !important;
+            gap: 14px !important;
+            padding: 6px 4px 16px !important;
+            cursor: grab !important;
+            user-select: none !important;
+            -webkit-overflow-scrolling: touch !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+            width: 100% !important;
+            scroll-behavior: auto !important;
+        }
+        #categoryTrack::-webkit-scrollbar { display: none !important; }
+        #categoryTrack.is-dragging { cursor: grabbing !important; scroll-behavior: auto !important; }
+        #categoryTrack .category-tile {
+            flex: 0 0 170px !important;
+            width: 170px !important;
+            min-width: 170px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 12px !important;
+            padding: 22px 14px 18px !important;
+            border: 3px solid #242424 !important;
+            border-radius: 12px !important;
+            background: #fff !important;
+            text-align: center !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-size: 1.15rem !important;
+            box-shadow: 4px 5px 0 #242424 !important;
+            box-sizing: border-box !important;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease !important;
+        }
+        #categoryTrack .category-tile:hover {
+            transform: translateY(-4px) rotate(-1deg) !important;
+            box-shadow: 6px 7px 0 #242424 !important;
+            background: #fffbe8 !important;
+        }
+        #categoryTrack .category-tile img {
+            width: 90px !important;
+            height: 90px !important;
+            object-fit: contain !important;
+            pointer-events: none !important;
+        }
+        #categoryTrack .cat-emoji-icon {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 90px !important;
+            height: 90px !important;
+            font-size: 3.2rem !important;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark">市</span>
+            <span>興大二手交易</span>
+        </a>
+
+        <nav class="main-nav" aria-label="主要導覽">
+            <a href="/">首頁</a>
+            <a href="/products/">所有商品</a>
+            <a href="/post">刊登商品</a>
+            <a href="/barter/" class="nav-pill barter">換換模式</a>
+        </nav>
+
+        <div class="nav-actions">
+            <button class="icon-button" type="button" data-open-drawer="cart" aria-label="開啟購物車">
+                <img src="/static/assets/icon-cart.png" alt="">
+                <span class="badge-count" data-cart-count>0</span>
+            </button>
+            <button class="icon-button" type="button" data-open-drawer="notifications" aria-label="開啟通知">
+                <img src="/static/assets/icon-bell.png" alt="">
+                <span class="badge-count">3</span>
+            </button>
+            <div class="user-nav">
+                {% if user %}
+                    <a href="/chat">我的訊息</a>
+                    <a href="/barter/matches">我的配對</a>
+                    <a href="/seller/dashboard">賣家專區</a>
+                    <a href="/auth/logout">登出</a>
+                    <a href="/settings" class="avatar-pill" title="個人設定" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; border: 2px solid var(--line) !important; border-radius: 50% !important; overflow: hidden !important; box-shadow: 2px 2px 0 var(--line) !important; background: #fff !important; flex-shrink: 0 !important; transition: transform 0.16s ease, box-shadow 0.16s ease;">
+                        <img src="{{ get_user_avatar(user.user_id) or '/static/assets/icon-profile.png' }}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" alt="⚙️">
+                    </a>
+                {% else %}
+                    <a href="/login" class="nav-pill primary">登入/註冊</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <section class="hero-section">
+            <div class="hero-copy">
+                <h1>校園好物，今天就能找到新主人。</h1>
+                <p>把課本、文具、宿舍用品、球拍和電子產品集中在一個更好逛的市集。搜尋、收藏、加入購物車、看通知與瀏覽說明都能快速完成。</p>
+                <div class="hero-actions">
+                    <a class="button" href="/products/">逛全部商品</a>
+                    <a class="button secondary" href="/post">我要刊登</a>
+                    <a class="button secondary" href="/help">查看使用說明</a>
+                </div>
+            </div>
+            <div class="hero-art" aria-hidden="true">
+                <div class="sticker-card books"><img src="/static/assets/cat-books-nobackground.png" alt=""></div>
+                <div class="sticker-card cart"><img src="/static/assets/icon-cart.png" alt=""></div>
+                <div class="sticker-card chat"><img src="/static/assets/icon-categories.png" alt=""></div>
+            </div>
+        </section>
+
+        <section class="quick-dock" aria-label="快捷功能">
+            <a class="dock-item" href="/"><img src="/static/assets/icon-home.png" alt="">首頁</a>
+            <a class="dock-item" href="/login"><img src="/static/assets/icon-profile.png" alt="">會員</a>
+            <button class="dock-item" type="button" data-open-drawer="cart"><img src="/static/assets/icon-cart.png" alt="">購物車</button>
+            <button class="dock-item" type="button" data-focus-search><img src="/static/assets/icon-search.png" alt="">搜尋</button>
+            <a class="dock-item" href="/help"><img src="/static/assets/icon-chat.png" alt="">說明</a>
+            <button class="dock-item" type="button" data-open-drawer="notifications"><img src="/static/assets/icon-bell.png" alt="">通知</button>
+            <a class="dock-item" href="/post"><img src="/static/assets/icon-post.png" alt="">刊登</a>
+            <a class="dock-item" href="#categories"><img src="/static/assets/icon-categories.png" alt="">分類</a>
+        </section>
+
+        <section class="search-panel" aria-label="商品搜尋">
+            <form class="search-form" action="/search/" method="GET" data-search-form>
+                <input type="text" name="q" placeholder="想找什麼？例如：微積分、檯燈、球鞋" data-search-input>
+                <select name="cat" onchange="this.form.submit()">
+                    <option value="">所有分類</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="min_p" min="0" placeholder="最低價">
+                <input type="number" name="max_p" min="0" placeholder="最高價">
+                <button type="submit">搜尋</button>
+            </form>
+            <div class="chip-row" aria-label="熱門搜尋">
+                <button class="chip" type="button" data-search-chip="九成新">九成新</button>
+                <button class="chip" type="button" data-search-chip="急售">急售</button>
+                <button class="chip" type="button" data-search-chip="可議價">可議價</button>
+                <button class="chip" type="button" data-search-chip="課本">課本</button>
+                <button class="chip" type="button" data-search-chip="宿舍">宿舍</button>
+            </div>
+        </section>
+
+        <section id="categories">
+            <div class="section-heading">
+                <h2>用分類快速逛</h2>
+                <a class="button secondary" href="/products/">查看全部</a>
+            </div>
+            <!-- 可拖曳橫向滾動分類列 -->
+            <div class="category-track" id="categoryTrack" data-drag-scroll>
+                <a class="category-tile" href="/products/?category=課本">
+                    <img src="/static/assets/cat-books.png" alt="">課本
+                </a>
+                <a class="category-tile" href="/products/?category=文具">
+                    <img src="/static/assets/cat-stationery.png" alt="">文具
+                </a>
+                <a class="category-tile" href="/products/?category=電子產品">
+                    <img src="/static/assets/cat-electronics.png" alt="">電子產品
+                </a>
+                <a class="category-tile" href="/products/?category=宿舍用品">
+                    <img src="/static/assets/cat-dorm.png" alt="">宿舍用品
+                </a>
+                <a class="category-tile" href="/products/?category=服飾">
+                    <img src="/static/assets/cat-clothing.png" alt="">服飾
+                </a>
+                <a class="category-tile" href="/products/?category=鞋子">
+                    <img src="/static/assets/cat-shoes.png" alt="">鞋子
+                </a>
+                <a class="category-tile" href="/products/?category=運動用品">
+                    <img src="/static/assets/cat-sports.png" alt="">運動用品
+                </a>
+                <a class="category-tile cat-emoji" href="/products/?category=校園服務">
+                    <span class="cat-emoji-icon">🎓</span>校園服務
+                </a>
+                <a class="category-tile cat-emoji" href="/products/?category=其他">
+                    <span class="cat-emoji-icon">📦</span>其他
+                </a>
+            </div>
+        </section>
+
+        <section>
+            <div class="section-heading">
+                <h2>最新上架物品</h2>
+                <div class="filter-row" aria-label="商品狀態篩選">
+                    <button class="chip active" type="button" data-card-filter="all">全部</button>
+                    <button class="chip" type="button" data-card-filter="new">近新品</button>
+                    <button class="chip" type="button" data-card-filter="used">二手良品</button>
+                    <button class="chip" type="button" data-card-filter="sale">特價</button>
+                </div>
+            </div>
+
+            <div class="product-grid" data-product-grid>
+                {% for product in products %}
+                <article class="product-card" data-product-card data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price | int }}" data-product-tags="{{ product.tags or '' }}">
+                    <div class="product-image">
+                        {% if product.image %}
+                            <img src="{{ product.image }}" alt="{{ product.name }}">
+                        {% else %}
+                            <div class="no-image">無圖片</div>
+                        {% endif %}
+                    </div>
+                    <div class="product-body">
+                        <h3>{{ product.name }}</h3>
+                        <p class="price">NT$ {{ product.price | int }}</p>
+                        <div class="tag-list">
+                            {% if product.tags %}
+                                {% for tag in product.tags.split(',') %}
+                                    <span class="tag-badge">#{{ tag.strip() }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="tag-badge">#校園面交</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-actions">
+                            <a class="button secondary" href="/products/{{ product.id }}">查看詳情</a>
+                            <button class="tiny-button" type="button" data-add-cart aria-label="加入購物車 {{ product.name }}">＋</button>
+                        </div>
+                    </div>
+                </article>
+                {% else %}
+                <div class="empty-state">目前還沒有商品上架，快來當第一個賣家吧！</div>
+                {% endfor %}
+            </div>
+
+            <section class="section-band">
+                <img src="/static/assets/illust-bike.png" alt="">
+                <div>
+                    <h3>換換模式也在這裡</h3>
+                    <p>不想花錢買也沒關係。用你用不到的物品交換想要的好物，系統會把你的配對入口保留在導覽列。</p>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <section class="drawer" data-drawer="cart" hidden>
+        <div class="drawer-head">
+            <h3>購物車 / 待看清單</h3>
+            <button class="tab-button" type="button" data-close-drawer>關閉</button>
+        </div>
+        <div class="cart-list" data-cart-list-drawer>
+            <div class="cart-item">還沒有加入商品。</div>
+        </div>
+    </section>
+
+    <section class="drawer" data-drawer="notifications" hidden>
+        <div class="drawer-head">
+            <h3>通知中心</h3>
+            <button class="tab-button" type="button" data-close-drawer>關閉</button>
+        </div>
+        <div class="status-list">
+            <div class="status-item">有 2 件宿舍用品剛上架。</div>
+            <div class="status-item">你的「換換模式」可以開始滑商品。</div>
+            <div class="status-item">提醒：面交前請再次確認商品狀況。</div>
+        </div>
+    </section>
+
+    <div class="toast" data-toast hidden></div>
+
+    <footer>
+        <p>國立中興大學 - 校園二手交易平台測試版</p>
+        <p>聯絡我們：<a href="mailto:a0985054276@gmail.com">a0985054276@gmail.com</a></p>
+        <p>© 2026 NCHU CS Project. All rights reserved.</p>
+    </footer>
+
+    <script src="/static/market-ui.js?v=8"></script>
+</body>
+</html>

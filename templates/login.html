@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員登入與註冊 - 興大二手交易平台</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* ── 登入頁面專屬樣式 ── */
+        .auth-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: clamp(24px, 5vw, 60px) 16px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+            background: #fff;
+            border: 3px solid var(--line);
+            border-radius: 16px;
+            box-shadow: 6px 8px 0 var(--line);
+            padding: clamp(22px, 5vw, 40px);
+        }
+
+        .auth-brand-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .auth-brand-row .brand-mark {
+            width: 36px;
+            height: 36px;
+            font-size: 0.9rem;
+        }
+
+        .auth-brand-row span {
+            font-weight: 900;
+            font-size: 1.05rem;
+            color: var(--ink);
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 28px;
+            border: 2px solid var(--line);
+            border-radius: 999px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 0.95rem;
+            color: var(--muted);
+            border: none;
+            background: transparent;
+            border-radius: 0;
+            box-shadow: none;
+            transition: background 0.18s, color 0.18s;
+            min-height: 44px;
+        }
+
+        .tab-btn.active {
+            background: var(--mint);
+            color: var(--ink);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #e8f5ee;
+            color: var(--ink);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 900;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--line);
+            border-radius: 10px;
+            font-size: 1rem;
+            background: #fff;
+            box-shadow: 2px 2px 0 rgba(32, 33, 36, 0.10);
+            transition: border-color 0.15s, box-shadow 0.15s;
+            min-height: 48px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #49a06d;
+            box-shadow: 0 0 0 3px rgba(73, 160, 109, 0.15), 2px 2px 0 rgba(32, 33, 36, 0.10);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            border: 3px solid var(--line);
+            border-radius: 999px;
+            color: var(--ink);
+            font-size: 1.05rem;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 var(--line);
+            transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+            min-height: 52px;
+            margin-top: 4px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 5px 6px 0 var(--line);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-login {
+            background: var(--mint);
+        }
+
+        .btn-register {
+            background: var(--sky);
+        }
+
+        .auth-footer-note {
+            margin-top: 22px;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+
+        .auth-footer-note a {
+            color: var(--green);
+            font-weight: 900;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                border-radius: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark">市</span>
+            <span>興大二手交易</span>
+        </a>
+        <nav class="main-nav" aria-label="主要導覽">
+            <a href="/">首頁</a>
+            <a href="/products/">所有商品</a>
+            <a href="/barter/" class="nav-pill barter">換換模式</a>
+        </nav>
+    </header>
+
+    <div id="auth-msg-bridge"
+         data-error="{{ error or '' }}"
+         data-success="{{ success or '' }}"
+         style="display: none;">
+    </div>
+
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="auth-brand-row">
+                <span class="brand-mark">市</span>
+                <span>興大二手交易平台</span>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="tab-btn active" type="button" onclick="switchTab('login-form', this)">會員登入</button>
+                <button class="tab-btn" type="button" onclick="switchTab('register-form', this)">註冊帳號</button>
+            </div>
+
+            <div id="login-form" class="auth-form active">
+                <form action="/auth/login" method="POST">
+                    <div class="form-group">
+                        <label for="login-username">帳號</label>
+                        <input type="text" id="login-username" name="username" placeholder="請輸入帳號" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">密碼</label>
+                        <input type="password" id="login-password" name="password" placeholder="請輸入密碼" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="submit-btn btn-login">登入平台</button>
+                </form>
+                <p class="auth-footer-note">還沒有帳號？<a href="#" onclick="switchToRegister(event)">點此註冊</a></p>
+            </div>
+
+            <div id="register-form" class="auth-form">
+                <form action="/auth/register" method="POST">
+                    <div class="form-group">
+                        <label for="reg-username">設定帳號</label>
+                        <input type="text" id="reg-username" name="username" placeholder="請設定帳號名稱" required autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">設定密碼</label>
+                        <input type="password" id="reg-password" name="password" placeholder="請設定密碼" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="submit-btn btn-register">確認註冊</button>
+                </form>
+                <p class="auth-footer-note">已有帳號？<a href="#" onclick="switchToLogin(event)">點此登入</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(formId, btn) {
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            document.getElementById(formId).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function switchToRegister(e) {
+            e.preventDefault();
+            const btn = document.querySelectorAll('.tab-btn')[1];
+            switchTab('register-form', btn);
+        }
+
+        function switchToLogin(e) {
+            e.preventDefault();
+            const btn = document.querySelectorAll('.tab-btn')[0];
+            switchTab('login-form', btn);
+        }
+
+        window.onload = function () {
+            const bridge = document.getElementById('auth-msg-bridge');
+            const errorMsg = bridge.getAttribute('data-error');
+            const successMsg = bridge.getAttribute('data-success');
+
+            if (errorMsg && errorMsg !== '') {
+                alert("⚠️ " + errorMsg);
+            }
+            if (successMsg && successMsg !== '') {
+                alert("✅ " + successMsg);
+            }
+        };
+    </script>
+</body>
+</html>

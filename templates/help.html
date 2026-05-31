@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>使用說明 - 興大二手交易</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark">市</span>
+            <span>興大二手交易</span>
+        </a>
+
+        <nav class="main-nav" aria-label="主要導覽">
+            <a href="/">首頁</a>
+            <a href="/products/">所有商品</a>
+            <a href="/post">刊登商品</a>
+            <a href="/barter/" class="nav-pill barter">換換模式</a>
+        </nav>
+
+        <div class="user-nav">
+            {% if user %}
+                <a href="/chat">我的訊息</a>
+                <a href="/barter/matches">我的配對</a>
+                <a href="/seller/dashboard">賣家專區</a>
+                <a href="/auth/logout">登出</a>
+                <a href="/settings" class="avatar-pill" title="個人設定" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; border: 2px solid var(--line) !important; border-radius: 50% !important; overflow: hidden !important; box-shadow: 2px 2px 0 var(--line) !important; background: #fff !important; flex-shrink: 0 !important; transition: transform 0.16s ease, box-shadow 0.16s ease;">
+                    <img src="{{ get_user_avatar(user.user_id) or '/static/assets/icon-profile.png' }}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" alt="⚙️">
+                </a>
+            {% else %}
+                <a href="/login" class="nav-pill primary">登入/註冊</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="section-heading" style="margin-top: 0;">
+            <h2>網站使用說明</h2>
+            <a class="button secondary" href="/">回首頁</a>
+        </div>
+
+        <section class="help-grid">
+            <article class="help-card">
+                <h3>1. 搜尋商品</h3>
+                <p>在首頁或商品列表輸入關鍵字，也可以用分類、最低價、最高價縮小範圍。</p>
+            </article>
+            <article class="help-card">
+                <h3>2. 查看詳情</h3>
+                <p>點擊商品卡上的「查看詳情」可以看到照片、價格、描述、交易地點與賣家聯絡方式。</p>
+            </article>
+            <article class="help-card">
+                <h3>3. 加入待看清單</h3>
+                <p>點擊商品卡上的「＋」可以加入待看清單。同一件商品只會加入一次。</p>
+            </article>
+            <article class="help-card">
+                <h3>4. 刊登商品</h3>
+                <p>登入後點「刊登商品」，填寫照片、名稱、價格、分類、地點與聯絡方式即可上架。</p>
+            </article>
+            <article class="help-card">
+                <h3>5. 以物易物</h3>
+                <p>使用「換換模式」瀏覽可交換商品，找到互相有興趣的商品後再進一步聯絡。</p>
+            </article>
+            <article class="help-card">
+                <h3>6. 安全面交</h3>
+                <p>建議選擇校內公共場所面交，交易前再次確認商品狀態、價格與聯絡資訊。</p>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        <p>國立中興大學 - 校園二手交易平台測試版</p>
+        <p>聯絡我們：<a href="mailto:a0985054276@gmail.com">a0985054276@gmail.com</a></p>
+        <p>© 2026 NCHU CS Project. All rights reserved.</p>
+    </footer>
+</body>
+</html>

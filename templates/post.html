@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>刊登商品 - 校園二手交易平台</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h2>校園二手交易平台</h2>
+        <nav>
+            <a href="/">回首頁</a>
+            <a href="/products/">所有商品</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>📝 刊登新商品</h2>
+        <form action="/products/" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>商品圖片：</label>
+                <input type="file" name="file" accept="image/*" required>
+            </div>
+            <div class="form-group">
+                <label>商品名稱：</label>
+                <input type="text" name="name" required placeholder="例如：二手微積分課本">
+            </div>
+            <div class="form-group">
+                <label>價格 (元)：</label>
+                <input type="number" name="price" required min="0">
+            </div>
+            <div class="form-group">
+                <label>自訂標籤：</label>
+                <input type="text" name="tags" placeholder="請用逗號隔開，例如：急售,九成新,可議價">
+            </div>
+            <div class="form-group">
+                <label>類別：</label>
+                <select name="category">
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>交易地點：</label>
+                <input type="text" name="location" required placeholder="例如：興大男宿、女宿區">
+            </div>
+            <div class="form-group">
+                <label>聯絡方式：</label>
+                <div style="display: flex; gap: 10px;">
+                    <select name="contact_type" style="width: 150px; padding: 10px;">
+                        <option value="ig">Instagram 帳號</option>
+                        <option value="line">LINE ID</option>
+                        <option value="other">其他網址</option>
+                    </select>
+                    <input type="text" name="contact" required placeholder="請輸入您的 IG 帳號或 LINE ID" style="flex: 1; padding: 10px;">
+                </div>
+                <small style="color: #888;">買家點擊按鈕後，會直接開啟對應的 App 或網頁。</small>
+            </div>
+            <div class="form-group">
+                <label>商品描述：</label>
+                <textarea name="description" rows="4" placeholder="請描述新舊程度..."></textarea>
+            </div>
+            <button type="submit" style="width: 100%;">確認送出</button>
+        </form>
+    </div>
+</body>
+</html>

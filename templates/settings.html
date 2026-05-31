@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人設定 - 興大二手交易</title>
+    <link rel="stylesheet" href="/static/style.css?v=2">
+    <style>
+        .settings-card {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #fff;
+            border: 3px solid #242424;
+            border-radius: 12px;
+            box-shadow: 6px 8px 0 #242424;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .settings-title {
+            font-size: 1.8rem;
+            font-weight: 950;
+            color: #242424;
+            margin-top: 0;
+            margin-bottom: 24px;
+            border-bottom: 3px dashed #242424;
+            padding-bottom: 12px;
+        }
+
+        /* 大量頭像上傳區 */
+        .avatar-upload-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            background: #fafafa;
+            border: 2.5px dashed #242424;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .avatar-preview-box {
+            width: 120px;
+            height: 120px;
+            border: 3px solid #242424;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 3px 3px 0 #242424;
+            background: #eee;
+            position: relative;
+        }
+
+        .avatar-preview-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .btn-upload {
+            border: 2px solid #242424;
+            color: #242424;
+            background-color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            box-shadow: 2px 2px 0 #242424;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* 儲存按鈕樣式 */
+        .btn-save {
+            width: 100%;
+            padding: 14px;
+            font-size: 1.1rem;
+            background: #ffe359 !important;
+            color: #242424 !important;
+            border: 3px solid #242424 !important;
+            box-shadow: 3px 4px 0 #242424 !important;
+            border-radius: 8px;
+            font-weight: 950;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .btn-save:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 2px 0 #242424 !important;
+        }
+
+        /* 成功提示框 */
+        .success-banner {
+            background: #e2f0d9;
+            color: #385623;
+            border: 2.5px solid #242424;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            box-shadow: 3px 3px 0 #242424;
+            display: none;
+        }
+
+        /* 錯誤提示框 */
+        .error-banner {
+            background: #fce4d6;
+            color: #c84f36;
+            border: 2.5px solid #242424;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            box-shadow: 3px 3px 0 #242424;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark">市</span>
+            <span>興大二手交易</span>
+        </a>
+
+        <nav class="main-nav" aria-label="主要導覽">
+            <a href="/">首頁</a>
+            <a href="/products/">所有商品</a>
+            <a href="/post">刊登商品</a>
+            <a href="/barter/" class="nav-pill barter">換換模式</a>
+        </nav>
+
+        <div class="nav-actions">
+            <div class="user-nav">
+                {% if user %}
+                    <a href="/chat">我的訊息</a>
+                    <a href="/barter/matches">我的配對</a>
+                    <a href="/seller/dashboard">賣家專區</a>
+                    <a href="/auth/logout">登出</a>
+                    <a href="/settings" class="avatar-pill active" title="個人設定" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; border: 2px solid var(--line) !important; border-radius: 50% !important; overflow: hidden !important; box-shadow: 3px 3px 0 var(--line) !important; background: var(--mint) !important; flex-shrink: 0 !important; transform: translateY(-2px) !important; transition: transform 0.16s ease, box-shadow 0.16s ease;">
+                        <img src="{{ get_user_avatar(user.user_id) or '/static/assets/icon-profile.png' }}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" alt="⚙️">
+                    </a>
+                {% else %}
+                    <a href="/login" class="nav-pill primary">登入/註冊</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="page-shell">
+        <div class="settings-card">
+            <h2 class="settings-title">⚙️ 個人檔案與設定</h2>
+
+            <!-- 成功提示橫幅 -->
+            <div class="success-banner" id="successBanner">
+                🎉 個人檔案已成功更新！您的新頭像與設定將立即應用於即時聊天系統中。
+            </div>
+
+            <!-- 錯誤提示橫幅 -->
+            <div class="error-banner" id="errorBanner">
+                ❌ 發生錯誤！請檢查後重試。
+            </div>
+
+            <form action="/settings" method="POST" enctype="multipart/form-data">
+                <!-- 1. 頭像上傳 -->
+                <div class="avatar-upload-container">
+                    <div class="avatar-preview-box">
+                        {% if db_user.avatar %}
+                            <img id="avatarImage" src="{{ db_user.avatar }}" alt="頭像">
+                        {% else %}
+                            <img id="avatarImage" src="/static/assets/icon-profile.png" alt="預設頭像">
+                        {% endif %}
+                    </div>
+                    <div class="file-input-wrapper">
+                        <span class="btn-upload">📷 上傳新頭像</span>
+                        <input type="file" name="file" accept="image/*" id="avatarFileInput">
+                    </div>
+                    <small style="color: #666; font-weight: bold;">支援 JPG、PNG 圖片，上傳後會自動套用為您的聊天頭像</small>
+                </div>
+
+                <!-- 2. 顯示暱稱 -->
+                <div class="form-group">
+                    <label for="nickname">顯示名稱 / 暱稱：</label>
+                    <input type="text" id="nickname" name="nickname" required 
+                           placeholder="請輸入您希望在聊天時顯示的名稱" 
+                           value="{{ db_user.nickname or db_user.username }}" 
+                           style="width: 100%; border: 2.5px solid #242424; font-weight: 800;">
+                </div>
+
+                <!-- 3. 個人簡介 -->
+                <div class="form-group">
+                    <label for="bio">個人簡介：</label>
+                    <textarea id="bio" name="bio" placeholder="簡單介紹一下自己，讓交易更信任..." 
+                              style="width: 100%; border: 2.5px solid #242424; font-weight: 800; min-height: 80px;">{{ db_user.bio or "" }}</textarea>
+                </div>
+
+                <button type="submit" class="btn-save">⚙️ 儲存變更</button>
+            </form>
+        </div>
+
+        <div class="settings-card" style="margin-top: 24px;">
+            <h2 class="settings-title">🔒 變更帳號密碼</h2>
+            <form action="/settings/password" method="POST">
+                <div class="form-group">
+                    <label for="current_password" style="font-weight: 800; margin-bottom: 8px; display: block;">目前密碼：</label>
+                    <input type="password" id="current_password" name="current_password" required 
+                           placeholder="請輸入您當前的帳號密碼" 
+                           style="width: 100%; border: 2.5px solid #242424; font-weight: 800; padding: 10px; border-radius: 6px;">
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="new_password" style="font-weight: 800; margin-bottom: 8px; display: block;">新密碼：</label>
+                    <input type="password" id="new_password" name="new_password" required minlength="6"
+                           placeholder="請輸入新密碼（至少 6 個字元）" 
+                           style="width: 100%; border: 2.5px solid #242424; font-weight: 800; padding: 10px; border-radius: 6px;">
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="confirm_password" style="font-weight: 800; margin-bottom: 8px; display: block;">確認新密碼：</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required minlength="6"
+                           placeholder="請再次輸入新密碼進行確認" 
+                           style="width: 100%; border: 2.5px solid #242424; font-weight: 800; padding: 10px; border-radius: 6px;">
+                </div>
+
+                <button type="submit" class="btn-save" style="background: #ffd27a !important;">🔒 變更帳號密碼</button>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <p>國立中興大學 - 校園二手交易平台測試版</p>
+        <p>聯絡我們：<a href="mailto:a0985054276@gmail.com">a0985054276@gmail.com</a></p>
+        <p>© 2026 NCHU CS Project. All rights reserved.</p>
+    </footer>
+
+    <script src="/static/market-ui.js?v=9"></script>
+    <script>
+        // 檔案選擇後即時預覽頭像
+        const fileInput = document.getElementById('avatarFileInput');
+        const avatarImage = document.getElementById('avatarImage');
+
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarImage.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 偵測成功與錯誤提示參數
+        const urlParams = new URLSearchParams(window.location.search);
+        const successParam = urlParams.get('success');
+        const errorParam = urlParams.get('error');
+
+        if (successParam) {
+            const banner = document.getElementById('successBanner');
+            if (successParam !== '1') {
+                banner.textContent = "🎉 " + decodeURIComponent(successParam);
+            }
+            banner.style.display = 'block';
+            clearUrlParams();
+        }
+
+        if (errorParam) {
+            const banner = document.getElementById('errorBanner');
+            banner.textContent = "❌ " + decodeURIComponent(errorParam);
+            banner.style.display = 'block';
+            clearUrlParams();
+        }
+
+        function clearUrlParams() {
+            setTimeout(() => {
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.pushState({path:newUrl}, '', newUrl);
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

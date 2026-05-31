@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ current_category }} - 興大二手交易</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark">市</span>
+            <span>興大二手交易</span>
+        </a>
+
+        <nav class="main-nav" aria-label="主要導覽">
+            <a href="/">首頁</a>
+            <a href="/products/">所有商品</a>
+            <a href="/post">刊登商品</a>
+            <a href="/barter/" class="nav-pill barter">換換模式</a>
+        </nav>
+
+        <div class="user-nav">
+            {% if user %}
+                <a href="/chat">我的訊息</a>
+                <a href="/barter/matches">我的配對</a>
+                <a href="/seller/dashboard">賣家專區</a>
+                <a href="/auth/logout">登出</a>
+                <a href="/settings" class="avatar-pill" title="個人設定" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; border: 2px solid var(--line) !important; border-radius: 50% !important; overflow: hidden !important; box-shadow: 2px 2px 0 var(--line) !important; background: #fff !important; flex-shrink: 0 !important; transition: transform 0.16s ease, box-shadow 0.16s ease;">
+                    <img src="{{ get_user_avatar(user.user_id) or '/static/assets/icon-profile.png' }}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" alt="⚙️">
+                </a>
+            {% else %}
+                <a href="/login" class="nav-pill primary">登入/註冊</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="category-toolbar">
+            <div class="section-heading" style="margin-top: 0;">
+                <h2>{{ current_category }}</h2>
+                <a class="button secondary" href="/">回首頁</a>
+            </div>
+            <form class="search-form" action="/search/" method="GET">
+                <input type="text" name="q" placeholder="在商品中搜尋">
+                <select name="cat" onchange="this.form.submit()">
+                    <option value="">所有分類</option>
+                    {% for category in categories %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="min_p" min="0" placeholder="最低價">
+                <input type="number" name="max_p" min="0" placeholder="最高價">
+                <button type="submit">搜尋</button>
+            </form>
+            <div class="chip-row">
+                <a class="chip" href="/products/">全部</a>
+                {% for category in categories %}
+                <a class="chip" href="/products/?category={{ category | urlencode }}">{{ category }}</a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <div class="product-grid">
+            {% for product in products %}
+            <article class="product-card" data-product-card data-product-id="{{ product.id }}" data-product-name="{{ product.name }}" data-product-price="{{ product.price | int }}" data-product-tags="{{ product.tags or '' }}">
+                <div class="product-image">
+                    {% if product.image %}
+                        <img src="{{ product.image }}" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="no-image">無圖片</div>
+                    {% endif %}
+                </div>
+                <div class="product-body">
+                    <h3>{{ product.name }}</h3>
+                    <p class="price">NT$ {{ product.price | int }}</p>
+                    <div class="tag-list">
+                        {% if product.tags %}
+                            {% for tag in product.tags.split(',') %}
+                                <span class="tag-badge">#{{ tag.strip() }}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="tag-badge">#校園面交</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-actions">
+                        <a class="button secondary" href="/products/{{ product.id }}">查看詳情</a>
+                        <button class="tiny-button" type="button" data-add-cart aria-label="加入購物車 {{ product.name }}">＋</button>
+                    </div>
+                </div>
+            </article>
+            {% else %}
+            <div class="empty-state">找不到符合條件的商品，換個分類或關鍵字試試。</div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <div class="toast" data-toast hidden></div>
+    <footer>
+        <p>國立中興大學 - 校園二手交易平台測試版</p>
+        <p>聯絡我們：<a href="mailto:a0985054276@gmail.com">a0985054276@gmail.com</a></p>
+    </footer>
+    <script src="/static/market-ui.js"></script>
+</body>
+</html>

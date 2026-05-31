@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>即時聊天 - 興大二手交易</title>
+    <link rel="stylesheet" href="/static/style.css?v=2">
+    <style>
+        .chat-container {
+            display: flex;
+            height: calc(100vh - 120px);
+            min-height: 500px;
+            border: 3px solid #242424;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 6px 8px 0 #242424;
+            margin-top: 20px;
+            box-sizing: border-box;
+        }
+
+        /* 左側對話清單 */
+        .chat-sidebar {
+            width: 320px;
+            border-right: 3px solid #242424;
+            display: flex;
+            flex-direction: column;
+            background: #fafafa;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 16px;
+            background: #ffe359;
+            border-bottom: 3px solid #242424;
+            font-weight: 900;
+            font-size: 1.2rem;
+            color: #242424;
+        }
+        .rooms-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+        .room-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 2px solid #242424;
+            cursor: pointer;
+            transition: background 0.16s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+        .room-item:hover {
+            background: #fffbe8;
+        }
+        .room-item.active {
+            background: #e2f0d9;
+        }
+        /* 移除三點選單按鈕的預設全域按鈕陰影、背景與邊框 */
+        .btn-more-actions {
+            box-shadow: none !important;
+            border: none !important;
+            background: none !important;
+            border-radius: 6px !important;
+            min-height: auto !important;
+            padding: 4px 8px !important;
+            transform: none !important;
+            transition: background 0.12s, color 0.12s !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+        }
+        .btn-more-actions:hover {
+            box-shadow: none !important;
+            background: #eee !important;
+            transform: none !important;
+            color: #242424 !important;
+        }
+
+        /* 移除下拉選單按鈕的預設全域按鈕陰影、背景與邊框 */
+        .dropdown-menu-card button {
+            box-shadow: none !important;
+            border: none !important;
+            background: none !important;
+            border-radius: 0 !important;
+            min-height: auto !important;
+            padding: 8px 14px !important;
+            transform: none !important;
+            width: 100% !important;
+            justify-content: flex-start !important;
+            cursor: pointer !important;
+        }
+        .dropdown-menu-card button:hover {
+            box-shadow: none !important;
+            background: #fffbe8 !important;
+            transform: none !important;
+        }
+        .dropdown-menu-card button:last-child {
+            border-top: 1.5px dashed #242424 !important;
+            margin-top: 4px !important;
+        }
+        .dropdown-menu-card button:last-child:hover {
+            box-shadow: none !important;
+            background: #ffcbd1 !important;
+            color: #c84f36 !important;
+            transform: none !important;
+        }
+        .room-product-img {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #242424;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #eee;
+        }
+        .room-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .room-info-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 4px;
+        }
+        .room-user {
+            font-weight: 900;
+            font-size: 0.98rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .room-time {
+            font-size: 0.78rem;
+            color: #666;
+        }
+        .room-last-msg {
+            font-size: 0.88rem;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rooms-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: #888;
+            font-weight: bold;
+        }
+
+        /* 右側聊天視窗 */
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .chat-main-content {
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+            flex-direction: column;
+        }
+        
+        /* 聊天室頂部商品卡 */
+        .chat-header {
+            padding: 12px 16px;
+            border-bottom: 3px solid #242424;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+        .btn-back {
+            display: none;
+            padding: 6px 12px;
+            font-size: 0.9rem;
+            background: #fff;
+            border: 2px solid #242424;
+            border-radius: 6px;
+            font-weight: 900;
+            box-shadow: 2px 2px 0 #242424;
+            cursor: pointer;
+        }
+        .header-product-info {
+            min-width: 0;
+        }
+        .header-product-title {
+            font-weight: 900;
+            font-size: 1.05rem;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .header-product-price {
+            font-size: 0.9rem;
+            color: #c84f36;
+            font-weight: 950;
+            margin: 2px 0 0;
+        }
+        .chat-header-right {
+            flex-shrink: 0;
+        }
+
+        /* 訊息滾動區 */
+        .chat-messages {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px;
+            background: #fdfdfd;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            scroll-behavior: smooth;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #242424 #fffbe8;
+        }
+        .chat-messages::-webkit-scrollbar {
+            width: 11px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: #fffbe8;
+            border-left: 2px solid #242424;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #ffe359;
+            border: 2px solid #242424;
+            border-radius: 999px;
+        }
+        .chat-jump-latest {
+            display: none;
+            position: absolute;
+            right: 22px;
+            bottom: 78px;
+            z-index: 5;
+            min-height: 34px;
+            padding: 6px 12px;
+            border: 2.5px solid #242424;
+            border-radius: 999px;
+            background: #ffe359;
+            color: #242424;
+            font-size: 0.84rem;
+            font-weight: 900;
+            box-shadow: 3px 3px 0 #242424;
+            cursor: pointer;
+        }
+        .chat-jump-latest.show {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-bubble-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 70%;
+        }
+        .chat-bubble-container.me {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+        .chat-bubble-container.other {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+        .msg-sender {
+            font-size: 0.78rem;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .chat-bubble {
+            padding: 10px 14px;
+            border: 2.5px solid #242424;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.45;
+            font-weight: 800;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+        .chat-bubble-container.other .chat-bubble {
+            background: #fff;
+            border-top-left-radius: 2px;
+            box-shadow: 2.5px 3px 0 #242424;
+        }
+        .chat-bubble-container.me .chat-bubble {
+            background: #e2f0d9;
+            border-top-right-radius: 2px;
+            box-shadow: -2.5px 3px 0 #242424;
+        }
+        .msg-time {
+            font-size: 0.72rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* 輸入控制區 */
+        .chat-input-bar {
+            padding: 14px 16px;
+            border-top: 3px solid #242424;
+            background: #fff;
+            display: flex;
+            gap: 12px;
+        }
+        .chat-input-bar input {
+            flex: 1;
+            padding: 12px;
+            border: 3px solid #242424;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            box-shadow: 2px 2px 0 #242424;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .chat-input-bar input:focus {
+            background: #fffbe8;
+        }
+        .chat-input-bar button {
+            padding: 0 24px;
+            background: #ffe359;
+            color: #242424;
+            border: 3px solid #242424;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 0.95rem;
+            box-shadow: 3px 3px 0 #242424;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .chat-input-bar button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #242424;
+        }
+
+        /* 歡迎 / 未選取對話面板 */
+        .chat-welcome {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #fbfbfb;
+            color: #888;
+            text-align: center;
+            padding: 20px;
+        }
+        .chat-welcome img {
+            width: 100px;
+            opacity: 0.7;
+            margin-bottom: 16px;
+        }
+        .chat-welcome h3 {
+            margin: 0 0 8px;
+            color: #242424;
+            font-weight: 900;
+        }
+
+        /* 手機板響應式樣式 */
+        @media (max-width: 768px) {
+            .chat-container {
+                height: calc(100vh - 90px);
+                margin-top: 10px;
+            }
+            .chat-sidebar {
+                width: 100%;
+                border-right: none;
+            }
+            .chat-main {
+                display: none;
+                width: 100%;
+            }
+            /* 當進入特定聊天室時，切換類別顯示主要內容 */
+            .chat-container.in-room .chat-sidebar {
+                display: none;
+            }
+            .chat-container.in-room .chat-main {
+                display: flex;
+            }
+            .btn-back {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark">市</span>
+            <span>興大二手交易</span>
+        </a>
+
+        <nav class="main-nav" aria-label="主要導覽">
+            <a href="/">首頁</a>
+            <a href="/products/">所有商品</a>
+            <a href="/post">刊登商品</a>
+            <a href="/barter/" class="nav-pill barter">換換模式</a>
+        </nav>
+
+        <div class="nav-actions">
+            <div class="user-nav">
+                {% if user %}
+                    <a href="/chat" class="active">我的訊息</a>
+                    <a href="/barter/matches">我的配對</a>
+                    <a href="/seller/dashboard">賣家專區</a>
+                    <a href="/auth/logout">登出</a>
+                    <a href="/settings" class="avatar-pill" title="個人設定" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; border: 2px solid var(--line) !important; border-radius: 50% !important; overflow: hidden !important; box-shadow: 2px 2px 0 var(--line) !important; background: #fff !important; flex-shrink: 0 !important; transition: transform 0.16s ease, box-shadow 0.16s ease;">
+                        <img src="{{ get_user_avatar(user.user_id) or '/static/assets/icon-profile.png' }}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" alt="⚙️">
+                    </a>
+                {% else %}
+                    <a href="/login" class="nav-pill primary">登入/註冊</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="page-shell" style="max-width: 1180px; margin: 0 auto; padding: 0 16px;">
+        <div class="chat-container" id="chatContainer">
+            <!-- 左側聊天室清單 -->
+            <div class="chat-sidebar" style="display: flex; flex-direction: column;">
+                <div class="sidebar-header">💬 我的對話對象</div>
+                
+                <!-- 分頁標籤導覽 (Tabs) -->
+                <div class="chat-tabs" style="display: flex; gap: 8px; padding: 10px 16px; border-bottom: 2.5px solid var(--line); background: #fafafa;">
+                    <button class="chat-tab-btn active" id="tabActive" onclick="switchTab('active')" style="flex: 1; padding: 6px 12px; font-size: 0.85rem; font-weight: 900; border: 2px solid var(--line); border-radius: 6px; cursor: pointer; background: var(--sun); box-shadow: 1.5px 2px 0 var(--line); transition: all 0.1s;">進行中</button>
+                    <button class="chat-tab-btn" id="tabArchived" onclick="switchTab('archived')" style="flex: 1; padding: 6px 12px; font-size: 0.85rem; font-weight: 900; border: 2px solid var(--line); border-radius: 6px; cursor: pointer; background: #fff; box-shadow: 1.5px 2px 0 var(--line); transition: all 0.1s;">已封存</button>
+                </div>
+                
+                <div class="rooms-list" id="roomsList" style="flex: 1; overflow-y: auto;">
+                    <div class="rooms-empty">載入中...</div>
+                </div>
+            </div>
+
+            <!-- 右側對話框區塊 -->
+            <div class="chat-main" id="chatMain">
+                <!-- 預設歡迎畫面 -->
+                <div class="chat-welcome" id="chatWelcome">
+                    <img src="/static/assets/icon-chat.png" alt="" onerror="this.style.display='none'">
+                    <h3>開啟對話</h3>
+                    <p>請從左側點選對話，開始進行買賣交流吧！</p>
+                </div>
+
+                <!-- 實際聊天室內容 (預設隱藏) -->
+                <div class="chat-main-content" id="chatMainContent" style="display: none; flex: 1; min-height: 0; overflow: hidden; flex-direction: column; position: relative;">
+                    <div class="chat-header">
+                        <div class="chat-header-left">
+                            <button class="btn-back" id="btnBack">← 返回</button>
+                            <img class="room-product-img" id="headerProductImg" src="" alt="" style="width: 44px; height: 44px;">
+                            <div class="header-product-info">
+                                <h3 class="header-product-title" id="headerProductTitle">商品名稱</h3>
+                                <p class="header-product-price" id="headerProductPrice">NT$ 0</p>
+                            </div>
+                        </div>
+                        <div class="chat-header-right">
+                            <a class="button secondary" id="btnProductDetail" href="" style="min-height: 36px; padding: 6px 12px; font-size: 0.85rem;">查看詳情</a>
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- 訊息會動態加入此處 -->
+                    </div>
+                    <button type="button" class="chat-jump-latest" id="btnJumpLatest">跳到最新 ↓</button>
+
+                    <div class="chat-input-bar">
+                        <input type="text" id="chatInput" placeholder="輸入訊息..." autocomplete="off">
+                        <button id="btnSend">發送</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const activeRoomId = "{{ room_id or '' }}";
+        const currentUserId = parseInt("{{ user.user_id }}");
+        let ws = null;
+        let chatRooms = [];
+        const seenMessageIds = new Set();
+
+        let currentTab = 'active';
+        let activeDropdownId = null;
+        let shouldStickToBottom = true;
+
+        function switchTab(tab) {
+            currentTab = tab;
+            const btnActive = document.getElementById('tabActive');
+            const btnArchived = document.getElementById('tabArchived');
+            
+            if (tab === 'active') {
+                btnActive.classList.add('active');
+                btnActive.style.background = 'var(--sun)';
+                btnArchived.classList.remove('active');
+                btnArchived.style.background = '#fff';
+            } else {
+                btnArchived.classList.add('active');
+                btnArchived.style.background = 'var(--sun)';
+                btnActive.classList.remove('active');
+                btnActive.style.background = '#fff';
+            }
+            
+            renderRoomsList();
+        }
+
+        function toggleDropdown(event, roomId) {
+            closeAllDropdowns();
+            const dropdown = document.getElementById(`dropdown-${roomId}`);
+            if (activeDropdownId === roomId) {
+                dropdown.style.display = 'none';
+                activeDropdownId = null;
+            } else {
+                dropdown.style.display = 'flex';
+                activeDropdownId = roomId;
+            }
+        }
+
+        function closeAllDropdowns() {
+            if (activeDropdownId !== null) {
+                const openDropdown = document.getElementById(`dropdown-${activeDropdownId}`);
+                if (openDropdown) {
+                    openDropdown.style.display = 'none';
+                }
+                activeDropdownId = null;
+            }
+        }
+
+        document.addEventListener('click', () => {
+            closeAllDropdowns();
+        });
+
+        // 封存操作
+        async function toggleArchive(roomId) {
+            closeAllDropdowns();
+            try {
+                const response = await fetch(`/chat/rooms/${roomId}/archive`, {
+                    method: 'POST'
+                });
+                if (!response.ok) throw new Error();
+                const result = await response.json();
+                if (result.success) {
+                    const targetRoom = chatRooms.find(r => r.room_id === roomId);
+                    if (targetRoom) {
+                        targetRoom.is_archived = result.is_archived;
+                    }
+                    renderRoomsList();
+                    if (roomId == activeRoomId) {
+                        window.location.href = '/chat';
+                    }
+                }
+            } catch (err) {
+                console.error("封存操作失敗:", err);
+            }
+        }
+
+        // 封鎖操作
+        async function toggleBlock(roomId) {
+            closeAllDropdowns();
+            try {
+                const response = await fetch(`/chat/rooms/${roomId}/block`, {
+                    method: 'POST'
+                });
+                if (!response.ok) throw new Error();
+                const result = await response.json();
+                if (result.success) {
+                    const targetRoom = chatRooms.find(r => r.room_id === roomId);
+                    if (targetRoom) {
+                        targetRoom.is_blocked = result.is_blocked;
+                    }
+                    renderRoomsList();
+                    if (roomId == activeRoomId) {
+                        window.location.reload();
+                    }
+                }
+            } catch (err) {
+                console.error("封鎖操作失敗:", err);
+            }
+        }
+
+        // 加載所有聊天室清單
+        async function loadRooms() {
+            try {
+                const response = await fetch('/chat/api/rooms?t=' + Date.now());
+                if (!response.ok) throw new Error();
+                chatRooms = await response.json();
+                renderRoomsList();
+            } catch (err) {
+                document.getElementById('roomsList').innerHTML = '<div class="rooms-empty">載入失敗。</div>';
+            }
+        }
+
+        function renderRoomsList() {
+            const roomsList = document.getElementById('roomsList');
+            roomsList.innerHTML = '';
+            
+            const filteredRooms = chatRooms.filter(room => {
+                if (currentTab === 'active') {
+                    return !room.is_archived;
+                } else {
+                    return room.is_archived;
+                }
+            });
+            
+            if (filteredRooms.length === 0) {
+                roomsList.innerHTML = `<div class="rooms-empty">此處目前無任何對話。</div>`;
+                return;
+            }
+            
+            filteredRooms.forEach(room => {
+                const roomItem = document.createElement('a');
+                roomItem.href = `/chat?room_id=${room.room_id}`;
+                roomItem.className = `room-item ${room.room_id == activeRoomId ? 'active' : ''}`;
+                roomItem.id = `room-${room.room_id}`;
+                
+                const partnerAvatar = room.other_user.avatar || '/static/assets/icon-profile.png';
+                const partnerName = room.other_user.nickname || room.other_user.username;
+                const blockBadge = room.is_blocked ? '<span style="font-size: 0.72rem; color: #c84f36; border: 1.5px solid #c84f36; padding: 1px 4px; border-radius: 4px; font-weight: bold; background: #ffcbd1; margin-left: 6px;">🚫 封鎖中</span>' : '';
+                const archiveLabel = room.is_archived ? '📁 取消封存' : '📁 封存對話';
+                const blockLabel = room.is_blocked ? '🚫 解除封鎖' : '🚫 封鎖使用者';
+                
+                roomItem.innerHTML = `
+                    <img class="room-product-img" src="${partnerAvatar}" style="border-radius: 50% !important; width: 50px !important; height: 50px !important; border: 2px solid #242424 !important; box-shadow: 2px 2px 0 #242424 !important; object-fit: cover !important;" alt="">
+                    <div class="room-info" style="flex: 1; min-width: 0;">
+                        <div class="room-info-top">
+                            <span class="room-user">${partnerName}${blockBadge}</span>
+                            <span class="room-time" id="room-time-${room.room_id}">${room.last_message_time}</span>
+                        </div>
+                        <div class="room-last-msg" id="room-msg-${room.room_id}">${room.last_message}</div>
+                    </div>
+                    <div class="room-action-dropdown-wrapper" style="position: relative; margin-left: auto;">
+                        <button class="btn-more-actions" onclick="event.preventDefault(); event.stopPropagation(); toggleDropdown(event, ${room.room_id});" title="更多操作" style="background: none; border: none; font-size: 1.25rem; font-weight: 900; cursor: pointer; padding: 4px 8px; display: inline-flex; align-items: center; justify-content: center; color: #667085; border-radius: 6px; transition: background 0.12s, color 0.12s;">•••</button>
+                        
+                        <div class="dropdown-menu-card" id="dropdown-${room.room_id}" style="display: none; position: absolute; right: 0; top: 38px; z-index: 50; width: 140px; background: #fff; border: 2.5px solid #242424; border-radius: 8px; box-shadow: 3px 3.5px 0 #242424; padding: 6px 0; box-sizing: border-box; flex-direction: column;">
+                            <button onclick="event.preventDefault(); event.stopPropagation(); toggleArchive(${room.room_id});" style="width: 100%; border: none; background: none; text-align: left; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; cursor: pointer; color: #242424; transition: background 0.1s;">${archiveLabel}</button>
+                            <button onclick="event.preventDefault(); event.stopPropagation(); toggleBlock(${room.room_id});" style="width: 100%; border: none; background: none; text-align: left; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; cursor: pointer; color: #242424; transition: background 0.1s;">${blockLabel}</button>
+                            <button onclick="event.preventDefault(); event.stopPropagation(); deleteRoom(${room.room_id});" style="width: 100%; border: none; background: none; text-align: left; padding: 8px 14px; font-size: 0.85rem; font-weight: 800; cursor: pointer; color: #c84f36; transition: background 0.1s; border-top: 1.5px dashed #242424; margin-top: 4px;">🗑️ 刪除對話</button>
+                        </div>
+                    </div>
+                `;
+                
+                roomItem.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('chatContainer').classList.add('in-room');
+                    }
+                });
+                
+                roomsList.appendChild(roomItem);
+            });
+        }
+
+        // 刪除特定對話框聊天室
+        async function deleteRoom(roomId) {
+            if (!confirm("確定要刪除與此對象的完整對話歷史嗎？此動作將無法復原。")) {
+                return;
+            }
+            try {
+                const response = await fetch(`/chat/rooms/${roomId}/delete`, {
+                    method: 'POST'
+                });
+                if (!response.ok) throw new Error();
+                const result = await response.json();
+                if (result.success) {
+                    // 刪除成功後直接載入大廳，以清空狀態
+                    window.location.href = '/chat';
+                } else {
+                    alert("刪除失敗，請稍候重試。");
+                }
+            } catch (err) {
+                console.error("刪除對話出錯:", err);
+                alert("網路或伺服器連線出錯，請稍後再試。");
+            }
+        }
+
+        // 載入對話訊息
+        async function loadMessages(roomId) {
+            try {
+                const response = await fetch(`/chat/api/rooms/${roomId}/messages?t=` + Date.now());
+                if (!response.ok) throw new Error();
+                const messages = await response.json();
+                
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML = '';
+                seenMessageIds.clear();
+                
+                messages.forEach(msg => {
+                    appendMessageBubble(msg);
+                });
+                
+                scrollToBottom(true);
+            } catch (err) {
+                console.error("載入訊息出錯:", err);
+            }
+        }
+
+        // 在對話框中加入訊息泡泡
+        function appendMessageBubble(msg) {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages || !msg) return;
+
+            if (msg.id !== undefined && msg.id !== null) {
+                const msgKey = String(msg.id);
+                if (seenMessageIds.has(msgKey)) return;
+                seenMessageIds.add(msgKey);
+            }
+            
+            const container = document.createElement('div');
+            // 我們可以使用 flex 佈局來排版頭像與氣泡
+            container.className = `chat-bubble-row ${msg.is_me ? 'me' : 'other'}`;
+            container.style.cssText = `
+                display: flex;
+                gap: 12px;
+                align-self: ${msg.is_me ? 'flex-end' : 'flex-start'};
+                max-width: 75%;
+                flex-direction: ${msg.is_me ? 'row-reverse' : 'row'};
+                align-items: flex-start;
+                margin-bottom: 8px;
+            `;
+            
+            const avatarUrl = msg.sender_avatar || '/static/assets/icon-profile.png';
+            const displayName = msg.sender_name || '使用者';
+            
+            container.innerHTML = `
+                <img src="${avatarUrl}" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid #242424; box-shadow: 2px 2px 0 #242424; object-fit: cover; flex-shrink: 0;" alt="">
+                <div style="display: flex; flex-direction: column; align-items: ${msg.is_me ? 'flex-end' : 'flex-start'};">
+                    ${!msg.is_me ? `<span class="msg-sender" style="font-size: 0.78rem; color: #666; font-weight: bold; margin-bottom: 4px;">${escapeHTML(displayName)}</span>` : ''}
+                    <div class="chat-bubble" style="
+                        padding: 10px 14px;
+                        border: 2.5px solid #242424;
+                        border-radius: 12px;
+                        font-size: 0.95rem;
+                        line-height: 1.45;
+                        font-weight: 800;
+                        word-break: break-all;
+                        white-space: pre-wrap;
+                        background: ${msg.is_me ? '#e2f0d9' : '#fff'};
+                        border-top-right-radius: ${msg.is_me ? '2px' : '12px'};
+                        border-top-left-radius: ${msg.is_me ? '12px' : '2px'};
+                        box-shadow: ${msg.is_me ? '-2.5px 3px 0 #242424' : '2.5px 3px 0 #242424'};
+                    ">${escapeHTML(msg.message)}</div>
+                    <span class="msg-time" style="font-size: 0.72rem; color: #888; margin-top: 4px;">${msg.created_at}</span>
+                </div>
+            `;
+            
+            chatMessages.appendChild(container);
+        }
+
+        // HTML 轉義避免 XSS
+        function escapeHTML(str) {
+            return String(str ?? '').replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        function isNearBottom(element, threshold = 90) {
+            if (!element) return true;
+            return element.scrollHeight - element.scrollTop - element.clientHeight <= threshold;
+        }
+
+        function updateJumpLatestButton() {
+            const btnJumpLatest = document.getElementById('btnJumpLatest');
+            if (!btnJumpLatest) return;
+            btnJumpLatest.classList.toggle('show', !shouldStickToBottom);
+        }
+
+        // 滾動到聊天室最下方。force=true 用於剛載入聊天室或自己送出訊息。
+        function scrollToBottom(force = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            if (!chatMessages) return;
+            if (force || shouldStickToBottom || isNearBottom(chatMessages)) {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                shouldStickToBottom = true;
+                updateJumpLatestButton();
+            }
+        }
+
+        function setupMessageScrollBehavior() {
+            const chatMessages = document.getElementById('chatMessages');
+            const btnJumpLatest = document.getElementById('btnJumpLatest');
+            if (!chatMessages) return;
+
+            chatMessages.addEventListener('scroll', () => {
+                shouldStickToBottom = isNearBottom(chatMessages);
+                updateJumpLatestButton();
+            });
+
+            // 讓滑鼠滾輪優先控制訊息框，不要一滾就把整個頁面帶走。
+            chatMessages.addEventListener('wheel', (event) => {
+                const atTop = chatMessages.scrollTop <= 0;
+                const atBottom = chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 1;
+                const scrollingInside = !(atTop && event.deltaY < 0) && !(atBottom && event.deltaY > 0);
+                if (scrollingInside) {
+                    event.stopPropagation();
+                }
+            }, { passive: true });
+
+            if (btnJumpLatest) {
+                btnJumpLatest.addEventListener('click', () => {
+                    shouldStickToBottom = true;
+                    scrollToBottom(true);
+                });
+            }
+        }
+
+        let reconnectTimeout = null;
+
+        // 建立 WebSocket 連線
+        function connectWebSocket(roomId) {
+            if (ws) {
+                ws.onclose = null; // 清除舊的關閉監聽器避免重複重連
+                ws.close();
+            }
+            if (reconnectTimeout) {
+                clearTimeout(reconnectTimeout);
+            }
+            
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/chat/ws/${roomId}`);
+            
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                // 如果後端返回寫入錯誤，提示使用者，不中斷連線
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                // 如果是當前聊天室的訊息，直接呈現。
+                // 使用者正在往上查看紀錄時，不強迫捲到底部，避免對話紀錄被新訊息拉走。
+                if (activeRoomId == roomId) {
+                    const chatMessages = document.getElementById('chatMessages');
+                    const autoScroll = shouldStickToBottom || isNearBottom(chatMessages);
+                    const isMe = data.sender_id === currentUserId;
+                    appendMessageBubble({
+                        id: data.id,
+                        message: data.message,
+                        created_at: data.created_at,
+                        is_me: isMe,
+                        sender_avatar: data.sender_avatar,
+                        sender_name: data.sender_name
+                    });
+                    if (autoScroll || isMe) {
+                        scrollToBottom(true);
+                    } else {
+                        shouldStickToBottom = false;
+                        updateJumpLatestButton();
+                    }
+                }
+                
+                // 更新左側對話列表的最後訊息內容與時間
+                const msgEl = document.getElementById(`room-msg-${roomId}`);
+                const timeEl = document.getElementById(`room-time-${roomId}`);
+                if (msgEl) msgEl.textContent = data.message;
+                if (timeEl) timeEl.textContent = data.created_at;
+            };
+            
+            ws.onclose = function() {
+                console.log("WebSocket 連線已關閉，將在 3 秒後自動嘗試重新連線...");
+                // 3秒後自動嘗試重新連線，保障聊天高可用性
+                reconnectTimeout = setTimeout(() => {
+                    connectWebSocket(roomId);
+                }, 3000);
+            };
+            
+            ws.onerror = function(err) {
+                console.error("WebSocket 連線出錯:", err);
+            };
+        }
+
+        // 發送訊息：用 HTTP 寫入資料庫，WebSocket 只負責即時通知。
+        // 這樣頁面刷新後就算 WebSocket 還沒連好，訊息也能正常送出並立刻顯示。
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const btnSend = document.getElementById('btnSend');
+            const message = input.value.trim();
+            if (!message || !activeRoomId || btnSend.disabled) return;
+
+            btnSend.disabled = true;
+            const oldButtonText = btnSend.textContent;
+            btnSend.textContent = '傳送中...';
+
+            try {
+                const response = await fetch(`/chat/api/rooms/${activeRoomId}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(data.detail || '訊息送出失敗，請稍候重試。');
+                }
+
+                input.value = '';
+                appendMessageBubble(data);
+                scrollToBottom(true);
+
+                const msgEl = document.getElementById(`room-msg-${activeRoomId}`);
+                const timeEl = document.getElementById(`room-time-${activeRoomId}`);
+                if (msgEl) msgEl.textContent = data.message;
+                if (timeEl) timeEl.textContent = data.created_at;
+
+                const targetRoom = chatRooms.find(r => r.room_id == activeRoomId);
+                if (targetRoom) {
+                    targetRoom.last_message = data.message;
+                    targetRoom.last_message_time = data.created_at;
+                }
+            } catch (err) {
+                console.error('訊息送出失敗:', err);
+                alert(err.message || '訊息送出失敗，請稍候重試。');
+            } finally {
+                btnSend.disabled = false;
+                btnSend.textContent = oldButtonText;
+                input.focus();
+            }
+        }
+
+        // 點擊返回清單 (手機版)
+        document.getElementById('btnBack').addEventListener('click', () => {
+            document.getElementById('chatContainer').classList.remove('in-room');
+            // 跳轉回無 room_id 網址，便於下次點選
+            history.pushState(null, '', '/chat');
+        });
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadRooms();
+            
+            if (activeRoomId) {
+                // 顯示聊天內容區塊，隱藏歡迎畫面
+                document.getElementById('chatWelcome').style.display = 'none';
+                document.getElementById('chatMainContent').style.display = 'flex';
+                
+                // 行動版自動轉跳至聊天視窗
+                if (window.innerWidth <= 768) {
+                    document.getElementById('chatContainer').classList.add('in-room');
+                }
+                
+                // 載入商品資訊與詳情
+                const activeRoomData = chatRooms.find(r => r.room_id == activeRoomId);
+                if (activeRoomData) {
+                    document.getElementById('headerProductImg').src = activeRoomData.product.image || '/static/assets/icon-categories.png';
+                    const partnerName = activeRoomData.other_user.nickname || activeRoomData.other_user.username;
+                    document.getElementById('headerProductTitle').textContent = `${activeRoomData.product.name} (與 ${partnerName} 對話中)`;
+                    document.getElementById('headerProductPrice').textContent = `NT$ ${Math.round(activeRoomData.product.price)}`;
+                    document.getElementById('btnProductDetail').href = `/products/${activeRoomData.product.id}`;
+                    
+                    // 封鎖狀態 UI 防禦
+                    const chatInput = document.getElementById('chatInput');
+                    const btnSend = document.getElementById('btnSend');
+                    
+                    if (activeRoomData.is_blocked) {
+                        chatInput.disabled = true;
+                        chatInput.placeholder = "「此對話已封鎖」";
+                        chatInput.style.background = "#eee";
+                        btnSend.disabled = true;
+                        btnSend.style.background = "#ccc";
+                        btnSend.style.cursor = "not-allowed";
+                        btnSend.textContent = "已封鎖";
+                    } else {
+                        chatInput.disabled = false;
+                        chatInput.placeholder = "輸入訊息...";
+                        chatInput.style.background = "#fff";
+                        btnSend.disabled = false;
+                        btnSend.style.background = "var(--mint)";
+                        btnSend.style.cursor = "pointer";
+                        btnSend.textContent = "發送";
+                    }
+                }
+                
+                setupMessageScrollBehavior();
+
+                // 載入歷史訊息
+                await loadMessages(activeRoomId);
+                
+                // 建立即時連線
+                connectWebSocket(activeRoomId);
+                
+                // 綁定訊息發送事件
+                document.getElementById('btnSend').addEventListener('click', sendMessage);
+                document.getElementById('chatInput').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

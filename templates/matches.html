@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的配對清單 - 興大換換</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            background-color: #f4f7f6;
+            margin: 0;
+            font-family: "Microsoft JhengHei", sans-serif;
+        }
+
+        .container {
+            max-width: 920px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .match-card {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .item-box {
+            text-align: center;
+            flex: 0 0 130px;
+        }
+
+        .item-preview {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            margin-bottom: 10px;
+            background: #f1f3f5;
+        }
+
+        .item-name {
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .item-label {
+            font-size: 0.75rem;
+            color: #99a0a6;
+            margin-top: 5px;
+        }
+
+        .match-divider {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #6c5ce7;
+        }
+
+        .match-arrow {
+            font-size: 2.2rem;
+            font-weight: bold;
+        }
+
+        .info-section {
+            flex-grow: 1;
+            padding: 0 20px;
+            border-left: 1px solid #f0f0f0;
+        }
+
+        .tag-match {
+            display: inline-block;
+            background: #6c5ce7;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 160px;
+        }
+
+        .btn-link {
+            text-decoration: none;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .btn-contact {
+            background-color: #2ed573;
+            color: white;
+        }
+
+        .btn-detail {
+            background-color: #f8f9fa;
+            color: #555;
+            border: 1px solid #ddd;
+            display: block;
+            margin-top: 10px;
+        }
+
+        .btn-unmatch {
+            background: none;
+            color: #ff4757;
+            border: 1px solid #ff4757;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .btn-unmatch:hover {
+            background: #ff4757;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 90px 20px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .empty-state h3 {
+            color: #2c3e50;
+        }
+
+        @media (max-width: 680px) {
+            .match-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .info-section {
+                border-left: none;
+                border-top: 1px solid #f0f0f0;
+                padding: 20px 0;
+            }
+
+            .match-arrow {
+                transform: rotate(90deg);
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h2>興大換換 Barter</h2>
+        <nav style="display: flex; gap: 20px; align-items: center;">
+            <a href="/">首頁</a>
+            <a href="/chat">我的訊息</a>
+            <a href="/barter/">繼續滑卡</a>
+            <a href="/settings" class="avatar-pill" title="個人設定" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; width: 40px !important; height: 40px !important; min-height: 40px !important; padding: 0 !important; border: 2px solid var(--line) !important; border-radius: 50% !important; overflow: hidden !important; box-shadow: 2px 2px 0 var(--line) !important; background: #fff !important; flex-shrink: 0 !important; margin-left: auto; transition: transform 0.16s ease, box-shadow 0.16s ease;">
+                <img src="{{ get_user_avatar(user.user_id) or '/static/assets/icon-profile.png' }}" style="width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important;" alt="⚙️">
+            </a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2 style="margin-bottom: 10px; color: #2c3e50;">我的配對清單</h2>
+        <p style="color: #687782; margin-bottom: 34px;">這些是雙方都想交換的物品，可以直接查看對方聯絡方式。</p>
+
+        {% for m in matches %}
+        <div class="match-card" id="match-{{ m.my_item.id }}-{{ m.their_item.id }}">
+            <div class="item-box">
+                <img src="{{ m.my_item.image or '/static/default_item.png' }}" class="item-preview" alt="{{ m.my_item.name }}">
+                <div class="item-name">{{ m.my_item.name }}</div>
+                <div class="item-label">你拿出的物品</div>
+            </div>
+
+            <div class="match-divider">
+                <div class="match-arrow">⇄</div>
+            </div>
+
+            <div class="item-box">
+                <img src="{{ m.their_item.image or '/static/default_item.png' }}" class="item-preview" alt="{{ m.their_item.name }}">
+                <div class="item-name">{{ m.their_item.name }}</div>
+                <a href="/products/{{ m.their_item.id }}" class="btn-link btn-detail">查看詳情</a>
+            </div>
+
+            <div class="info-section">
+                <span class="tag-match">雙向興趣</span>
+                <p style="margin: 10px 0;">對方：<strong>{{ m.partner_name }}</strong></p>
+
+                <div class="action-group">
+                    {% set contact_url = m.contact %}
+                    {% if m.contact_type == 'ig' %}
+                        {% set contact_url = 'https://instagram.com/' + m.contact.replace('@', '') %}
+                    {% elif m.contact_type == 'line' %}
+                        {% set contact_url = 'https://line.me/ti/p/~' + m.contact %}
+                    {% endif %}
+
+                    <a href="{{ contact_url }}" target="_blank" class="btn-link btn-contact">
+                        {% if m.contact_type == 'ig' %}開啟 Instagram{% elif m.contact_type == 'line' %}開啟 LINE{% else %}查看聯絡方式{% endif %}
+                    </a>
+
+                    <button class="btn-unmatch"
+                            data-id="{{ m.their_item.id }}"
+                            data-offered-id="{{ m.my_item.id }}"
+                            onclick="confirmUnmatch(this)">
+                        取消配對
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>目前還沒有配對紀錄</h3>
+            <p style="color: #687782;">前往換換模式，選一件自己的物品後開始滑卡。</p>
+            <a href="/barter/"><button style="margin-top: 20px; background: #6c5ce7;">前往換換模式</button></a>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        async function confirmUnmatch(buttonElement) {
+            const productId = buttonElement.getAttribute('data-id');
+            const offeredProductId = buttonElement.getAttribute('data-offered-id');
+
+            if (!confirm('確定要取消這組配對嗎？')) return;
+
+            try {
+                const response = await fetch(`/barter/unmatch/${productId}?offered_product_id=${offeredProductId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.status === 'ok') {
+                    const card = buttonElement.closest('.match-card');
+                    if (card) {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(20px)';
+                        card.style.transition = '0.4s ease';
+
+                        setTimeout(() => {
+                            card.remove();
+                            if (document.querySelectorAll('.match-card').length === 0) {
+                                location.reload();
+                            }
+                        }, 400);
+                    }
+                } else {
+                    alert('取消配對失敗：' + (data.message || '請稍後再試'));
+                }
+            } catch (err) {
+                console.error('Network Error:', err);
+                alert('網路連線失敗，請稍後再試');
+            }
+        }
+    </script>
+</body>
+</html>
